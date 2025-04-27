@@ -1,0 +1,86 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
+
+class FoodCalorieEstimator {
+public:
+    FoodCalorieEstimator() {
+        // Initialize the food database with some common and fun items
+        food_db_ = {
+            {"pasta", 220},
+            {"sushi", 200},
+            {"avocado", 160},
+            {"omelette", 154},
+            {"icecream", 210},
+            {"grapes", 62},
+            {"cereal", 120},
+            {"smoothie", 180}
+        };
+    }
+
+    void run() {
+        std::cout << "Enter a description of the food in the image (e.g. \"Pasta and smoothie with icecream\"): ";
+        std::string input_line;
+        std::getline(std::cin, input_line);
+
+        auto items = extractFoodItems(input_line);
+        int total = calculateCalories(items);
+        printSummary(items, total);
+    }
+
+private:
+    std::unordered_map<std::string, int> food_db_;
+
+    // Convert input string to lowercase and remove punctuation
+    void normalize(std::string& word) const {
+        word.erase(std::remove_if(word.begin(), word.end(), ::ispunct), word.end());
+        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+    }
+
+    std::vector<std::string> extractFoodItems(const std::string& input) const {
+        std::istringstream stream(input);
+        std::string word;
+        std::vector<std::string> recognized;
+
+        while (stream >> word) {
+            normalize(word);
+            if (food_db_.count(word)) {
+                recognized.push_back(word);
+            }
+        }
+
+        return recognized;
+    }
+
+    int calculateCalories(const std::vector<std::string>& items) const {
+        int total = 0;
+        for (const auto& item : items) {
+            total += food_db_.at(item);
+        }
+        return total;
+    }
+
+    void printSummary(const std::vector<std::string>& items, int total_calories) const {
+        if (items.empty()) {
+            std::cout << "\nNo recognizable food items were found in the description.\n";
+            return;
+        }
+
+        std::cout << "\nDetected food items:\n";
+        for (const auto& item : items) {
+            std::cout << "- " << item << ": " << food_db_.at(item) << " kcal\n";
+        }
+
+        std::cout << "\nEstimated total calorie intake: " << total_calories << " kcal\n";
+    }
+};
+
+int main() {
+    FoodCalorieEstimator estimator;
+    estimator.run();
+    return 0;
+}
